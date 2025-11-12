@@ -1,8 +1,9 @@
 import {ReactNode} from 'react'
+import AuthForm from '../../components/AuthForm'
 
-const AuthLayout = ({children} : {children : ReactNode}) => {
+const AuthLayout = () => {
   return (
-    <div>{children}</div>
+    <AuthForm type="sign-in"/>
   )
 }
 

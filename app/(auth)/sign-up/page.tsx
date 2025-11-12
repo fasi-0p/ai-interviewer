@@ -1,9 +1,10 @@
-import React from 'react'
+import {ReactNode} from 'react'
+import AuthForm from '../../components/AuthForm'
 
-const page = () => {
+const AuthLayout = () => {
   return (
-    <div>page</div>
+    <AuthForm type="sign-up"/>
   )
 }
 
-export default page
+export default AuthLayout
