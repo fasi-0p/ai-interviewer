@@ -19,7 +19,7 @@ import {ReactNode} from 'react'
 import {Toaster} from "sonner"
 import Link from "next/link"
 import {toast} from "sonner"
-import FormField from "@/app/components/FormField"
+import FormField from "@/components/FormField"
 import { useRouter } from "next/navigation"
 
 type FormType = 'sign-in' | 'sign-up'
