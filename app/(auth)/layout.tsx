@@ -2,7 +2,7 @@ import {ReactNode} from 'react'
 
 const AuthLayout = ({children}: {children:ReactNode}) => {
   return (
-    <div>{children}</div>
+    <div className="auth-layout">{children}</div> //auth-layout is in globals.css defining css properties
   )
 }
 
