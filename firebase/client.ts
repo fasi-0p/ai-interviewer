@@ -14,7 +14,10 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
+//Firebase is initialized per JavaScript runtime, not per user; user sessions are handled independently via authentication tokens.
+//if the runtime is still on we'll use initialize(firebaseConfig) if not we use getApp()
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+
 
 export const auth=getAuth(app)
 export const db=getFirestore(app) 
