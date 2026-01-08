@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-
 import { cn } from '@/lib/utils';
 import { vapi } from '@/lib/vapi.sdk';
 
@@ -12,6 +11,7 @@ type AgentProps = {
   userId: string;
   type: 'generate' | 'interview';
 };
+export const interviewer = "de91fbae-92cf-48b1-8002-204b7ac22976";
 
 enum CallStatus {
   INACTIVE = 'INACTIVE',
@@ -76,11 +76,10 @@ const Agent = ({ userName, userId, type }: AgentProps) => {
 
   /* -------------------- ACTIONS -------------------- */
   const handleCall = async () => {
-    console.log('Starting call with workflow:', process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID);
     setCallStatus(CallStatus.CONNECTING);
 
     await vapi.start(
-      undefined,
+      undefined,      // no assistant
       undefined,
       undefined,
       process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID!,
@@ -92,6 +91,8 @@ const Agent = ({ userName, userId, type }: AgentProps) => {
       }
     );
   };
+
+
 
   const handleDisconnect = () => {
     setCallStatus(CallStatus.FINISHED);
@@ -137,6 +138,9 @@ const Agent = ({ userName, userId, type }: AgentProps) => {
                 className="rounded-full object-cover"
               />
             </div>
+            {isSpeaking && (
+                <span className="animate-speak absolute inset-0" />
+              )}
             <h3>{userName}</h3>
           </div>
         </div>
