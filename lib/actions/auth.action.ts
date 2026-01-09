@@ -1,80 +1,82 @@
-'use server'
+"use server";
 
-import { cookies } from 'next/headers'
-import { db, auth } from '@/firebase/admin'
+import { cookies } from "next/headers";
+import { db, auth } from "@/firebase/admin";
+import { DocumentData } from "firebase-admin/firestore";
+// import { Interview, User } from "@/types";
 
 /* =====================
    Types
 ===================== */
 
 export type SignUpParams = {
-  uid: string
-  name: string
-  email: string
-}
+  uid: string;
+  name: string;
+  email: string;
+};
 
 export type SignInParams = {
-  email: string
-  idToken: string
-}
+  email: string;
+  idToken: string;
+};
 
 /* =====================
    Constants
 ===================== */
 
-const ONE_WEEK = 60 * 60 * 24 * 7 // seconds
+const ONE_WEEK = 60 * 60 * 24 * 7; // seconds
 
 /* =====================
    Actions
 ===================== */
 
 export async function signUp(params: SignUpParams) {
-  const { uid, name, email } = params
+  const { uid, name, email } = params;
 
   try {
-    const userRecord = await db.collection('users').doc(uid).get()
+    const userRecord = await db.collection("users").doc(uid).get();
 
     if (userRecord.exists) {
       return {
         success: false,
-        message: 'User already exists',
-      }
+        message: "User already exists",
+      };
     }
 
-    await db.collection('users').doc(uid).set({
+    await db.collection("users").doc(uid).set({
       name,
       email,
-    })
+    });
 
     return {
       success: true,
-      message: 'Account created successfully',
-    }
+      message: "Account created successfully",
+    };
   } catch (error) {
-    console.error('Error creating a user', error)
+    console.error("Error creating a user", error);
 
     return {
       success: false,
-      message: 'Failed to create an account',
-    }
+      message: "Failed to create an account",
+    };
   }
 }
 
 export async function signIn(params: SignInParams) {
-  const { email, idToken } = params
+  const { email, idToken } = params;
 
   try {
-    await auth.getUserByEmail(email)
-    await setSessionCookie(idToken)
+    await auth.getUserByEmail(email);
+    await setSessionCookie(idToken);
 
-    return { success: true }
+    return { success: true };
   } catch (error) {
-    console.error(error)
+    console.error(error);
 
     return {
       success: false,
-      message: 'Failed to log into an account',
-    }
+      message: "Failed to log into an account",
+    };
   }
 }
 
@@ -83,25 +85,24 @@ export async function signIn(params: SignInParams) {
 ===================== */
 
 export async function setSessionCookie(idToken: string) {
-  // ✅ create Firebase session cookie
+  // create Firebase session cookie (expects ms)
   const sessionCookie = await auth.createSessionCookie(idToken, {
-    expiresIn: ONE_WEEK * 1000, // Firebase expects ms
-  })
+    expiresIn: ONE_WEEK * 1000,
+  });
 
-  // ⚠️ Next.js typing limitation — intentional cast
-  const cookieStore = await cookies()
+  const cookieStore = await cookies();
 
-  cookieStore.set('session', sessionCookie, {
+  cookieStore.set("session", sessionCookie, {
     maxAge: ONE_WEEK,
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    path: '/',
-    sameSite: 'lax',
-  })
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    sameSite: "lax",
+  });
 }
 
 export async function getCurrentUser(): Promise<User | null> {
-  const cookieStore = await cookies();
+  const cookieStore = await cookies(); 
 
   const sessionCookie = cookieStore.get("session")?.value;
   if (!sessionCookie) return null;
@@ -109,21 +110,15 @@ export async function getCurrentUser(): Promise<User | null> {
   try {
     const decodedClaims = await auth.verifySessionCookie(sessionCookie, true);
 
-    // get user info from db
-    const userRecord = await db
-      .collection("users")
-      .doc(decodedClaims.uid)
-      .get();
+    const userRecord = await db.collection("users").doc(decodedClaims.uid).get();
     if (!userRecord.exists) return null;
 
     return {
-      ...userRecord.data(),
+      ...(userRecord.data() as DocumentData),
       id: userRecord.id,
     } as User;
   } catch (error) {
     console.log(error);
-
-    // Invalid or expired session
     return null;
   }
 }
@@ -134,7 +129,62 @@ export async function isAuthenticated() {
   return !!user;
 }
 
+/* =====================
+   Interviews
+===================== */
+
+export async function getInterviewsByUserId(
+  userId: string
+): Promise<Interview[] | null> {
+  try {
+    const interviewsSnapshot = await db
+      .collection("interviews")
+      .where("userId", "==", userId)
+      .orderBy("createdAt", "desc")
+      .get();
+
+    const interviews = interviewsSnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...(doc.data() as DocumentData),
+    })) as Interview[];
+
+    return interviews;
+  } catch (error) {
+    console.log("Error fetching interviews:", error);
+    return null;
+  }
+}
+
+export async function getLatestInterviews(
+  params: GetLatestInterviewsParams
+): Promise<Interview[] | null> {
+  try {
+    const { userId, limit=20 } = params;
+    const interviewsSnapshot = await db
+      .collection("interviews")
+      .where("finalized", "==", true)
+      .where('userId','!=',userId)
+      .orderBy("createdAt", "desc")
+      .limit(limit)
+      .get();
+
+    const interviews = interviewsSnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...(doc.data() as DocumentData),
+    })) as Interview[];
+
+    return interviews;
+  } catch (error) {
+    console.log("Error fetching interviews:", error);
+    return null;
+  }
+}
+
+/* =====================
+   Logout
+===================== */
+
 export async function signOut() {
-  const cookieStore = cookies() as any
-  cookieStore.delete('session')
+  const cookieStore = cookies() as any;
+  cookieStore.delete("session");
 }
