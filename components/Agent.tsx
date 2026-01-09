@@ -48,7 +48,17 @@ const Agent = ({ userName, userId, type }: AgentProps) => {
 
     const onSpeechStart = () => setIsSpeaking(true);
     const onSpeechEnd = () => setIsSpeaking(false);
-    const onError = (error: Error) => console.error('Vapi error:', error);
+    //old onError    
+    // const onError = (error: Error) => console.error('Vapi error:', error);
+    //new onError
+    const onError = (error: any) => { //changed
+      if (!error || Object.keys(error).length === 0) {
+        // harmless internal Vapi/Daily cleanup error
+        return;
+      }
+
+      console.error("Vapi error:", error);
+    };
 
     vapi.on('call-start', onCallStart);
     vapi.on('call-end', onCallEnd);
