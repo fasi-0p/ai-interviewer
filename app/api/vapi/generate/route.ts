@@ -12,9 +12,11 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  console.log('Post hit 🔥')
   const { type, role, level, techstack, amount, userid } = await request.json();
 
   try {
+    console.log('try block begin 🔥')
     const { text: questions } = await generateText({
       model: google("gemini-2.5-flash"),
       prompt: `Prepare questions for a job interview.
@@ -38,14 +40,14 @@ export async function POST(request: Request) {
       level: level,
       techstack: techstack.split(","),
       questions: JSON.parse(questions),
-      userId: userid,
+      userId: userid ?? null,
       finalized: true,
       coverImage: getRandomInterviewCover(),
       createdAt: new Date().toISOString(),
     };
-
+    console.log('try block end 🔥')
     await db.collection("interviews").add(interview);
-
+    console.log('db added 🔥')
     return Response.json({ success: true }, { status: 200 });
   } catch (error) {
     console.error("Error:", error);
@@ -54,6 +56,7 @@ export async function POST(request: Request) {
 }
 
 //testing function just ignore
+// number of hours spent: 23!
 // export async function POST(request: Request) {
 //   console.log("🔥 /api/vapi/generate HIT"); //testing
 
