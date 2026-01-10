@@ -133,52 +133,7 @@ export async function isAuthenticated() {
    Interviews
 ===================== */
 
-export async function getInterviewsByUserId(
-  userId: string
-): Promise<Interview[] | null> {
-  try {
-    const interviewsSnapshot = await db
-      .collection("interviews")
-      .where("userId", "==", userId)
-      .orderBy("createdAt", "desc")
-      .get();
 
-    const interviews = interviewsSnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...(doc.data() as DocumentData),
-    })) as Interview[];
-
-    return interviews;
-  } catch (error) {
-    console.log("Error fetching interviews:", error);
-    return null;
-  }
-}
-
-export async function getLatestInterviews(
-  params: GetLatestInterviewsParams
-): Promise<Interview[] | null> {
-  try {
-    const { userId, limit=20 } = params;
-    const interviewsSnapshot = await db
-      .collection("interviews")
-      .where("finalized", "==", true)
-      .where('userId','!=',userId)
-      .orderBy("createdAt", "desc")
-      .limit(limit)
-      .get();
-
-    const interviews = interviewsSnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...(doc.data() as DocumentData),
-    })) as Interview[];
-
-    return interviews;
-  } catch (error) {
-    console.log("Error fetching interviews:", error);
-    return null;
-  }
-}
 
 /* =====================
    Logout

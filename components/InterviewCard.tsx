@@ -6,7 +6,7 @@ import Link from 'next/link'
 import {Button} from '@/components/ui/button'
 import DisplayTechIcons from '@/components/DisplayTechicons'
 
-const InterviewCard = ({interviewId, userId, role, type, techstack, createdAt} : InterviewCardProps) => {
+const InterviewCard = ({id, userId, role, type, techstack, createdAt} : InterviewCardProps) => {
     const feedback=null as Feedback | null;
     const normalizedType=/mix/gi.test(type)?'Mixed':type; //its a regular expression checking for mixed or technical theme based interview
     const formattedDate=dayjs(feedback?.createdAt || createdAt || Date.now()).format('D MMM, YYYY')
@@ -43,7 +43,7 @@ const InterviewCard = ({interviewId, userId, role, type, techstack, createdAt} :
             <div className='flex flex-row justify-between'>
                 <DisplayTechIcons techStack={techstack} />
                 <Button className="btn-primary">
-                    <Link href={feedback? `/interview/${interviewId}/feedback`: `/interview/${interviewId}`}>
+                    <Link href={feedback? `/interview/${id}/feedback`: `/interview/${id}`}>
                         {feedback?'Check Feedback':'View Interview'}
                     </Link>
                 </Button>
