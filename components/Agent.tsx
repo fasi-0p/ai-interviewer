@@ -5,15 +5,15 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { vapi } from '@/lib/vapi.sdk';
-import {interviewer} from '@/constants'
-
+import { interviewer } from '@/constants';
+import { createFeedback } from '@/lib/actions/general.action';
 
 type AgentProps = {
   userName: string;
   userId: string;
   type: 'generate' | 'interview';
   interviewId: string;
-  questions: string[];
+  questions?: string[];
 };
 
 enum CallStatus {
@@ -28,7 +28,7 @@ interface SavedMessage {
   content: string;
 }
 
-const Agent = ({ userName, userId, type, interviewId, questions}: AgentProps) => {
+const Agent = ({ userName, userId, type, interviewId, questions }: AgentProps) => {
   const router = useRouter();
 
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -51,16 +51,10 @@ const Agent = ({ userName, userId, type, interviewId, questions}: AgentProps) =>
 
     const onSpeechStart = () => setIsSpeaking(true);
     const onSpeechEnd = () => setIsSpeaking(false);
-    //old onError    
-    // const onError = (error: Error) => console.error('Vapi error:', error);
-    //new onError
-    const onError = (error: any) => { //changed
-      if (!error || Object.keys(error).length === 0) {
-        // harmless internal Vapi/Daily cleanup error
-        return;
-      }
 
-      console.error("Vapi error:", error);
+    const onError = (error: any) => {
+      if (!error || Object.keys(error).length === 0) return;
+      console.error('Vapi error:', error);
     };
 
     vapi.on('call-start', onCallStart);
@@ -80,42 +74,47 @@ const Agent = ({ userName, userId, type, interviewId, questions}: AgentProps) =>
     };
   }, []);
 
-  const handleGenerateFeedback = async (messages: SavedMessage[]) => {  //to be continued
+  /* -------------------- FEEDBACK -------------------- */
+  const handleGenerateFeedback = async (msgs: SavedMessage[]) => {
+    try {
+      console.log('handleGenerateFeedback');
 
-    //to be continued: create a server action that generated feedback
-    console.log('Generate Feedback here');
-    const {success, id}={
-      success:true,
-      id:'feedback-id'
-    }
+      const { success, feedbackId } = await createFeedback({
+        interviewId,
+        userId,
+        transcript: msgs,
+      });
 
-    if(success && id){
-      router.push(`/interview/${interviewId}/feedback`)
-    }else {
-      console.log('Error saving feedback');
-      router.push('/')
+      if (success && feedbackId) {
+        router.push(`/interview/${interviewId}/feedback`);
+      } else {
+        console.log('Error saving feedback');
+        router.push('/');
+      }
+    } catch (err) {
+      console.log('Error generating feedback:', err);
+      router.push('/');
     }
-  }
+  };
 
   /* -------------------- POST CALL -------------------- */
   useEffect(() => {
-
     if (callStatus === CallStatus.FINISHED) {
-      if (type==='generate'){
-        router.push('/')
-      }else{
-        handleGenerateFeedback(messages)
+      if (type === 'generate') {
+        router.push('/');
+      } else {
+        handleGenerateFeedback(messages);
       }
     }
-  }, [callStatus, router]);
+  }, [callStatus, type, router, messages]);
 
   /* -------------------- ACTIONS -------------------- */
   const handleCall = async () => {
     setCallStatus(CallStatus.CONNECTING);
 
-    if(type==='generate'){
+    if (type === 'generate') {
       await vapi.start(
-        undefined,      // no assistant
+        undefined, // no assistant
         undefined,
         undefined,
         process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID!,
@@ -126,20 +125,19 @@ const Agent = ({ userName, userId, type, interviewId, questions}: AgentProps) =>
           },
         }
       );
-    }else{
-      let formattedQuestions='';
-      if (questions){
-        formattedQuestions=questions.map((question)=> `-${question}`).join('\n');
+    } else {
+      let formattedQuestions = '';
+      if (questions?.length) {
+        formattedQuestions = questions.map((q) => `- ${q}`).join('\n');
       }
+
       await vapi.start(interviewer, {
-        variableValues:{
-          questions: formattedQuestions
-        }
-      })
+        variableValues: {
+          questions: formattedQuestions,
+        },
+      });
     }
   };
-
-
 
   const handleDisconnect = () => {
     setCallStatus(CallStatus.FINISHED);
@@ -148,8 +146,7 @@ const Agent = ({ userName, userId, type, interviewId, questions}: AgentProps) =>
 
   const latestMessage = messages[messages.length - 1]?.content;
   const isInactiveOrFinished =
-    callStatus === CallStatus.INACTIVE ||
-    callStatus === CallStatus.FINISHED;
+    callStatus === CallStatus.INACTIVE || callStatus === CallStatus.FINISHED;
 
   /* -------------------- UI -------------------- */
   return (
@@ -167,9 +164,7 @@ const Agent = ({ userName, userId, type, interviewId, questions}: AgentProps) =>
                 height={64}
                 className="rounded-full object-cover"
               />
-              {isSpeaking && (
-                <span className="animate-speak absolute inset-0" />
-              )}
+              {isSpeaking && <span className="animate-speak absolute inset-0" />}
             </div>
             <h3>AI Interviewer</h3>
           </div>
@@ -185,9 +180,7 @@ const Agent = ({ userName, userId, type, interviewId, questions}: AgentProps) =>
                 className="rounded-full object-cover"
               />
             </div>
-            {isSpeaking && (
-                <span className="animate-speak absolute inset-0" />
-              )}
+            {isSpeaking && <span className="animate-speak absolute inset-0" />}
             <h3>{userName}</h3>
           </div>
         </div>

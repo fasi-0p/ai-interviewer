@@ -38,7 +38,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    console.log('try block begin 🔥');
+    console.log('try block begin 🔥'); //testing
     
     const { text: questions } = await generateText({
       model: google("gemini-2.5-flash"),
@@ -70,9 +70,9 @@ export async function POST(request: Request) {
       createdAt: new Date().toISOString(),
     };
     
-    console.log('try block end 🔥');
+    console.log('try block end 🔥'); //testing
     await db.collection("interviews").add(interview);
-    console.log('db added 🔥');
+    console.log('db added 🔥'); //testing
     
     // IMPORTANT: Return the result so Vapi knows it worked
     return Response.json({ 
