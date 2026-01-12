@@ -1,36 +1,82 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+<div align="center">
 
-## Getting Started
+# 🎙️ PrepWise — AI Voice Interviewer 
+## **Not working bcz i am out of vapi credits 🥲🥲- plz give mooney 🥹**
+### *A workflow-driven AI interviewer that generates & conducts interviews like a real recruiter.*
 
-First, run the development server:
+<p align="center">
+  <img src="https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=nextdotjs"/>
+  <img src="https://img.shields.io/badge/TypeScript-blue?style=for-the-badge&logo=typescript"/>
+  <img src="https://img.shields.io/badge/Vapi-Voice%20AI-00E5FF?style=for-the-badge"/>
+  <img src="https://img.shields.io/badge/Firebase-Firestore-FFA000?style=for-the-badge&logo=firebase"/>
+  <img src="https://img.shields.io/badge/Gemini%20API-LLM-8E75FF?style=for-the-badge&logo=google"/>
+</p>
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+<p align="center">
+  <b>Collects role + skill details → generates questions → conducts voice interview → stores everything in Firebase.</b>
+</p>
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+<br/>
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:00F5FF,100:8E2DE2&height=190&section=header&text=PrepWise%20AI%20Interviewer&fontSize=40&fontColor=ffffff&animation=fadeIn" />
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+</div>
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## ⚡ What is PrepWise?
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+**PrepWise** is a **voice-first AI Interview platform** where users can:
+✅ Speak naturally like a phone interview  
+✅ Give role + tech stack + level + question count  
+✅ Auto-generate interview questions using Gemini  
+✅ Conduct mock interviews with a voice AI interviewer (Vapi)  
+✅ Save interview details + transcripts into Firestore  
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## 🧠 Core Idea
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+> Instead of building a “chatbot interview”, this project simulates a **real recruiter call**.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+A **Vapi Workflow** collects structured variables like:
+- `role`
+- `level`
+- `type`
+- `techstack`
+- `amount`
+- `userid`
+
+Then triggers backend endpoint:
+
+➡️ `POST /api/vapi/generate`  
+which generates interview questions + saves the finalized interview into Firestore.
+
+---
+
+## 🔥 Features
+
+✅ **Voice AI Interviewer** (real-time audio + voice response)  
+✅ **Workflow Orchestration** (data collection → API tool → end call)  
+✅ **Structured variable extraction** from conversation  
+✅ **Dynamic Interview Question Generation** using **Gemini API**  
+✅ **Firestore Storage**
+- users collection
+- interviews collection
+- transcripts / metadata  
+✅ **Session-based auth**
+✅ Clean UI + transcript animations
+
+---
+
+## 🧩 Architecture
+
+```mermaid
+flowchart TD
+    A[User Call Button] --> B[Vapi Workflow Starts]
+    B --> C[Conversation Node: Extract Variables]
+    C --> D[API Request Node: POST /api/vapi/generate]
+    D --> E[Gemini Generates Questions]
+    E --> F[Firestore Save: interviews]
+    F --> G[Vapi End Call Node]
+    G --> H[User redirected to dashboard]
